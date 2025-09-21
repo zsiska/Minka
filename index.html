@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Povídání s Minkou</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Nunito', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .chat-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+            gap: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .bing-side {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .chat-side {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            max-height: 500px;
+        }
+        
+        .bing-character {
+            position: relative;
+        }
+        
+        .bing-character image {
+            filter: brightness(1.2) contrast(1.2) saturate(1.3) drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+            transition: all 0.3s ease;
+        }
+        
+        .bing-talking image {
+            filter: brightness(1.3) contrast(1.2) saturate(1.4) drop-shadow(0 6px 12px rgba(0,0,0,0.3));
+            transform: scale(1.02);
+        }
+        
+        .bing-happy image {
+            filter: brightness(1.4) contrast(1.2) saturate(1.5) drop-shadow(0 8px 16px rgba(0,0,0,0.4));
+            transform: scale(1.05);
+        }
+        
+        .bing-thinking image {
+            filter: brightness(1.1) contrast(1.1) saturate(1.2) drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+        
+        .chat-messages {
+            flex: 1;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 20px;
+            padding: 20px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            max-height: 350px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .message {
+            margin: 12px 0;
+            padding: 12px 18px;
+            border-radius: 18px;
+            max-width: 85%;
+            word-wrap: break-word;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            animation: messageSlide 0.3s ease-out;
+        }
+        
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .user-message {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        
+        .bing-message {
+            background: linear-gradient(135deg, #FFE66D, #FFD93D);
+            color: #2C2C2C;
+            margin-right: auto;
+        }
+        
+        .input-area {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        #userInput {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 30px;
+            font-size: 16px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+            font-family: 'Nunito', sans-serif;
+        }
+        
+        #userInput:focus {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        button {
+            background: linear-gradient(135deg, #FF6B6B, #FF5252);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Nunito', sans-serif;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+        
+        button:hover {
+            background: linear-gradient(135deg, #FF5252, #FF1744);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        #speechToggle {
+            background: linear-gradient(135deg, #4CAF50, #45a049) !important;
+            min-width: 100px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        #speechToggle:hover {
+            background: linear-gradient(135deg, #45a049, #3d8b40) !important;
+        }
+        
+        #speechToggle:disabled {
+            background: #ccc !important;
+            cursor: not-allowed;
+        }
+        
+        /* Mikrofon tlačítko */
+        #micButton {
+            background: linear-gradient(135deg, #FF6B6B, #FF5252);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Nunito', sans-serif;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+        
+        #micButton:hover {
+            background: linear-gradient(135deg, #FF5252, #FF1744);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+        
+        #micButton.listening {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Mobilní optimalizace */
+        @media (max-width: 768px) {
+            .chat-container {
+                flex-direction: column;
+                padding: 15px;
+                gap: 15px;
+                max-width: 100%;
+                margin: 10px;
+            }
+            
+            .bing-side {
+                order: 2;
+                width: 100%;
+                text-align: center;
+            }
+            
+            .chat-side {
+                order: 1;
+                width: 100%;
+            }
+            
+            .bing-character svg {
+                width: 250px;
+                height: 320px;
+            }
+            
+            .input-area {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            #userInput {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            button {
+                width: 100%;
+                margin: 5px 0;
+            }
+            
+            .chat-messages {
+                max-height: 300px;
+                padding: 15px;
+            }
+            
+            .message {
+                max-width: 95%;
+                font-size: 14px;
+                padding: 10px 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .chat-container {
+                margin: 5px;
+                padding: 10px;
+            }
+            
+            .bing-character svg {
+                width: 200px;
+                height: 260px;
+            }
+            
+            .chat-messages {
+                max-height: 250px;
+                padding: 10px;
+            }
+            
+            .message {
+                font-size: 13px;
+                padding: 8px 12px;
+            }
+            
+            button {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+        }
+        
+        .bing-talking .right-arm {
+            animation: wave 0.6s ease-in-out infinite alternate;
+            transform-origin: 195px 190px;
+        }
+        
+        .bing-talking .bus-toy {
+            animation: wave-bus 0.6s ease-in-out infinite alternate;
+            transform-origin: 195px 190px;
+        }
+        
+        .bing-talking #mouth {
+            animation: talk 0.4s ease-in-out infinite alternate;
+        }
+        
+        .bing-talking {
+            animation: bounce 0.8s ease-in-out infinite alternate;
+        }
+        
+        .bing-happy {
+            animation: happy-bounce 1s ease-in-out;
+        }
+        
+        .bing-thinking {
+            animation: thinking 2s ease-in-out infinite;
+        }
+        
+        @keyframes wave {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(-20deg); }
+        }
+        
+        @keyframes wave-bus {
+            0% { transform: rotate(0deg) translate(0, 0); }
+            100% { transform: rotate(-20deg) translate(-5px, -8px); }
+        }
+        
+        @keyframes talk {
+            0% { 
+                d: path("M 140 140 Q 150 145 160 140"); 
+                opacity: 0.9;
+            }
+            100% { 
+                d: path("M 135 140 Q 150 155 165 140"); 
+                opacity: 1;
+            }
+        }
+        
+        @keyframes bounce {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-5px); }
+        }
+        
+        @keyframes happy-bounce {
+            0% { transform: translateY(0px) scale(1); }
+            25% { transform: translateY(-10px) scale(1.05); }
+            50% { transform: translateY(-5px) scale(1.1); }
+            75% { transform: translateY(-8px) scale(1.05); }
+            100% { transform: translateY(0px) scale(1); }
+        }
+        
+        @keyframes thinking {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-2deg); }
+            75% { transform: rotate(2deg); }
+            100% { transform: rotate(0deg); }
+        }
+        
+        .typing {
+            font-style: italic;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="bing-side">
+            <div class="bing-character" id="bingCharacter">
+                <svg width="320" height="420" viewBox="0 0 320 420" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <!-- Clip path pro hlavu -->
+                        <clipPath id="headClip">
+                            <ellipse cx="160" cy="130" rx="55" ry="50"/>
+                        </clipPath>
+                        <!-- Filter pro hlavu -->
+                        <filter id="headGlow">
+                            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                            <feMerge> 
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                        <!-- Gradient pro mikinu GAP -->
+                        <linearGradient id="hoodieGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#2C3E50;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#34495E;stop-opacity:1" />
+                        </linearGradient>
+                        <!-- Gradient pro kapuci -->
+                        <linearGradient id="hoodGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#34495E;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#2C3E50;stop-opacity:1" />
+                        </linearGradient>
+                        <!-- Gradient pro kalhoty -->
+                        <linearGradient id="pantsGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#1A252F;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#2C3E50;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    
+                    <!-- Stín pod postavou -->
+                    <ellipse cx="160" cy="410" rx="70" ry="20" fill="rgba(0,0,0,0.15)"/>
+                    
+                    <!-- Mikina GAP - tělo -->
+                    <ellipse cx="160" cy="280" rx="70" ry="90" fill="url(#hoodieGradient)" stroke="#1A252F" stroke-width="3"/>
+                    
+                    <!-- Kapuce mikiny -->
+                    <path d="M 90 200 Q 160 150 230 200 L 220 250 Q 160 220 100 250 Z" fill="url(#hoodGradient)" stroke="#1A252F" stroke-width="3"/>
+                    
+                    <!-- Krk pod kapucí -->
+                    <ellipse cx="160" cy="200" rx="30" ry="20" fill="#FFE4E1"/>
+                    
+                    <!-- Hlava z fotografie -->
+                    <image href="IMG_7287.jpeg" x="105" y="80" width="110" height="110" clip-path="url(#headClip)" preserveAspectRatio="xMidYMid slice" filter="url(#headGlow)"/>
+                    
+                    <!-- Rukávy mikiny -->
+                    <ellipse cx="90" cy="250" rx="25" ry="45" fill="url(#hoodieGradient)" stroke="#1A252F" stroke-width="3"/>
+                    <ellipse cx="230" cy="250" rx="25" ry="45" fill="url(#hoodieGradient)" stroke="#1A252F" stroke-width="3"/>
+                    
+                    <!-- Ruce -->
+                    <ellipse cx="90" cy="280" rx="18" ry="35" fill="#FFE4E1"/>
+                    <ellipse cx="230" cy="280" rx="18" ry="35" fill="#FFE4E1"/>
+                    
+                    <!-- Kalhoty -->
+                    <ellipse cx="140" cy="380" rx="30" ry="55" fill="url(#pantsGradient)" stroke="#1A252F" stroke-width="3"/>
+                    <ellipse cx="180" cy="380" rx="30" ry="55" fill="url(#pantsGradient)" stroke="#1A252F" stroke-width="3"/>
+                    
+                    <!-- Nohy -->
+                    <ellipse cx="140" cy="400" rx="20" ry="40" fill="#FFE4E1"/>
+                    <ellipse cx="180" cy="400" rx="20" ry="40" fill="#FFE4E1"/>
+                    
+                    <!-- Boty -->
+                    <ellipse cx="140" cy="420" rx="25" ry="12" fill="#1A252F"/>
+                    <ellipse cx="180" cy="420" rx="25" ry="12" fill="#1A252F"/>
+                    
+                    <!-- GAP logo na mikině -->
+                    <text x="160" y="300" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF" opacity="0.95">GAP</text>
+                    
+                    <!-- Kapsa na mikině -->
+                    <rect x="120" y="320" width="80" height="40" rx="8" fill="#1A252F" opacity="0.4"/>
+                    <rect x="125" y="325" width="70" height="30" rx="5" fill="#34495E" opacity="0.6"/>
+                    
+                    <!-- Zip na mikině -->
+                    <rect x="155" y="200" width="10" height="80" fill="#C0C0C0" opacity="0.8"/>
+                    <circle cx="160" cy="200" r="3" fill="#FFD700"/>
+                    
+                    <!-- Ústa pro animaci -->
+                    <path id="mouth" d="M 145 170 Q 160 180 175 170" stroke="#FF6B6B" stroke-width="3" fill="none" opacity="0.8">
+                        <animate attributeName="d" 
+                                 values="M 145 170 Q 160 180 175 170; M 145 175 Q 160 185 175 175; M 145 170 Q 160 180 175 170" 
+                                 dur="0.5s" 
+                                 repeatCount="indefinite" 
+                                 class="talk"/>
+                    </path>
+                </svg>
+            </div>
+            <p style="font-size: 18px; color: #667eea; margin-top: 15px; font-weight: 600;"><strong>Ahoj! Jsem Minka! 👦</strong></p>
+            <p style="font-size: 14px; color: #666; margin-top: 5px;">Tvůj nový kamarád</p>
+        </div>
+        
+        <div class="chat-side">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bing-message">
+                    Ahoj! Jsem Minka a moc rád si s tebou povídám! 😊 Co tě zajímá? Můžeme si povídat o čemkoliv - o hračkách, hrách, autobusech, škole nebo o čem chceš! Jsem tvůj nový kamarád! 🚌✨
+                </div>
+            </div>
+            
+            <div class="input-area">
+                <input type="text" id="userInput" placeholder="Napiš Mince zprávu..." autocomplete="off">
+                <button onclick="sendMessage()" type="button">Poslat</button>
+                <button id="micButton" onclick="toggleMicrophone()" type="button" style="background: #FF6B6B; margin-left: 10px;">🎤 Mluv</button>
+                <button id="speechToggle" onclick="toggleSpeech()" type="button" style="background: #4CAF50; margin-left: 10px;">🔊 Mluví</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const bingCharacter = document.getElementById('bingCharacter');
+        
+        function addMessage(text, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bing-message'}`;
+            messageDiv.textContent = text;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function animateMinka(type = 'talking') {
+            // Odstraň všechny animace
+            bingCharacter.classList.remove('bing-talking', 'bing-happy', 'bing-thinking');
+            
+            // Přidej novou animaci
+            bingCharacter.classList.add(`bing-${type}`);
+            
+            setTimeout(() => {
+                bingCharacter.classList.remove(`bing-${type}`);
+            }, type === 'happy' ? 1000 : 2000);
+        }
+        
+        // Text-to-Speech konfigurace - hlas malého chlapečka
+        const TTS_CONFIG = {
+            enabled: true,
+            voice: 'cs-CZ', // Český jazyk
+            rate: 0.9, // Rychlost řeči (chlapecká)
+            pitch: 1.3, // Vyšší pitch pro malého chlapečka
+            volume: 0.9, // Hlasitost
+            lang: 'cs-CZ',
+            // Hlasové parametry pro malého chlapečka
+            boyVoiceSettings: {
+                preferredVoices: [
+                    'Microsoft Jakub Desktop',    // Český mužský hlas
+                    'Microsoft David Desktop',    // Anglický mužský hlas
+                    'Microsoft Mark Desktop',     // Anglický mužský hlas
+                    'Google čeština',             // Google český hlas
+                    'Microsoft Richard Desktop'   // Anglický mužský hlas
+                ],
+                fallbackVoices: [
+                    'cs-CZ', 'cs', 'Czech', 'Czech Republic'
+                ]
+            }
+        };
+        
+        let speechSynthesis = window.speechSynthesis;
+        let currentUtterance = null;
+        
+        // Speech Recognition pro mikrofon
+        let recognition = null;
+        let isListening = false;
+        
+        // Inicializuj Speech Recognition
+        function initSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+            } else if ('SpeechRecognition' in window) {
+                recognition = new SpeechRecognition();
+            } else {
+                console.warn('⚠️ Speech Recognition není podporován v tomto prohlížeči');
+                const micButton = document.getElementById('micButton');
+                if (micButton) {
+                    micButton.style.display = 'none';
+                }
+                return false;
+            }
+            
+            // Nastav parametry pro český jazyk
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'cs-CZ';
+            recognition.maxAlternatives = 1;
+            
+            // Event handlery
+            recognition.onstart = () => {
+                console.log('🎤 Začínám poslouchat...');
+                isListening = true;
+                const micButton = document.getElementById('micButton');
+                if (micButton) {
+                    micButton.classList.add('listening');
+                    micButton.textContent = '🔴 Poslouchám...';
+                }
+                animateMinka('thinking');
+            };
+            
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                console.log('🎤 Rozpoznaný text:', transcript);
+                
+                // Vlož text do inputu
+                const userInput = document.getElementById('userInput');
+                userInput.value = transcript;
+                
+                // Automaticky pošli zprávu
+                setTimeout(() => {
+                    sendMessage();
+                }, 500);
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('🎤 Chyba při rozpoznávání:', event.error);
+                const micButton = document.getElementById('micButton');
+                if (micButton) {
+                    micButton.textContent = '🎤 Mluv';
+                    micButton.classList.remove('listening');
+                }
+                isListening = false;
+                
+                // Zobraz chybovou zprávu
+                let errorMessage = 'Chyba při rozpoznávání řeči';
+                switch(event.error) {
+                    case 'no-speech':
+                        errorMessage = 'Neslyším žádnou řeč. Zkus to znovu!';
+                        break;
+                    case 'audio-capture':
+                        errorMessage = 'Nemám přístup k mikrofonu. Zkontroluj oprávnění!';
+                        break;
+                    case 'not-allowed':
+                        errorMessage = 'Mikrofon není povolen. Povol ho v nastavení prohlížeče!';
+                        break;
+                    case 'network':
+                        errorMessage = 'Problém s internetem. Zkus to znovu!';
+                        break;
+                }
+                
+                addMessage(errorMessage, false);
+                if (TTS_CONFIG.enabled) {
+                    speakText(errorMessage);
+                }
+            };
+            
+            recognition.onend = () => {
+                console.log('🎤 Konec poslouchání');
+                isListening = false;
+                const micButton = document.getElementById('micButton');
+                if (micButton) {
+                    micButton.textContent = '🎤 Mluv';
+                    micButton.classList.remove('listening');
+                }
+                bingCharacter.classList.remove('bing-thinking');
+            };
+            
+            return true;
+        }
+        
+        // Toggle mikrofonu
+        function toggleMicrophone() {
+            if (!recognition) {
+                if (!initSpeechRecognition()) {
+                    addMessage('Mikrofon není dostupný v tomto prohlížeči. Použij psaní!', false);
+                    return;
+                }
+            }
+            
+            if (isListening) {
+                recognition.stop();
+            } else {
+                try {
+                    recognition.start();
+                } catch (error) {
+                    console.error('Chyba při spuštění rozpoznávání:', error);
+                    addMessage('Nemohu spustit mikrofon. Zkus to znovu!', false);
+                }
+            }
+        }
+        
+        // Text-to-Speech funkce s hlasem malého chlapečka
+        function speakText(text) {
+            if (!TTS_CONFIG.enabled || !speechSynthesis) return;
+            
+            // Zastav předchozí řeč
+            speechSynthesis.cancel();
+            
+            // Vytvoř novou utterance
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            
+            // Nastav parametry pro malého chlapečka
+            currentUtterance.lang = TTS_CONFIG.lang;
+            currentUtterance.rate = TTS_CONFIG.rate;
+            currentUtterance.pitch = TTS_CONFIG.pitch;
+            currentUtterance.volume = TTS_CONFIG.volume;
+            
+            // Najdi nejlepší hlas pro malého chlapečka
+            const voices = speechSynthesis.getVoices();
+            const bestBoyVoice = findBestBoyVoice(voices);
+            
+            if (bestBoyVoice) {
+                currentUtterance.voice = bestBoyVoice;
+                console.log('👦 Použitý hlas chlapečka:', bestBoyVoice.name, `(${bestBoyVoice.lang})`);
+            }
+            
+            // Event handlery
+            currentUtterance.onstart = () => {
+                console.log('👦 Minka začíná mluvit jako malý chlapeček...');
+                // Animuj Minku při mluvení
+                animateMinka('talking');
+            };
+            
+            currentUtterance.onend = () => {
+                console.log('👦 Minka dokončila mluvení');
+                // Zastav animaci
+                bingCharacter.classList.remove('bing-talking');
+            };
+            
+            currentUtterance.onerror = (event) => {
+                console.error('Chyba při mluvení:', event.error);
+            };
+            
+            // Spusť řeč
+            speechSynthesis.speak(currentUtterance);
+        }
+        
+        // Najdi nejlepší hlas pro malého chlapečka
+        function findBestBoyVoice(voices) {
+            if (!voices || voices.length === 0) return null;
+            
+            // 1. Prioritní hlasy (mužské hlasy pro chlapečka)
+            for (const preferredName of TTS_CONFIG.boyVoiceSettings.preferredVoices) {
+                const voice = voices.find(v => 
+                    v.name.toLowerCase().includes(preferredName.toLowerCase()) ||
+                    v.name === preferredName
+                );
+                if (voice) {
+                    console.log('👦 Nalezen prioritní hlas chlapečka:', voice.name);
+                    return voice;
+                }
+            }
+            
+            // 2. Hledej mužské hlasy obecně
+            const maleVoices = voices.filter(voice => {
+                const name = voice.name.toLowerCase();
+                return name.includes('male') || 
+                       name.includes('man') || 
+                       name.includes('muž') ||
+                       name.includes('jakub') ||
+                       name.includes('david') ||
+                       name.includes('mark') ||
+                       name.includes('richard') ||
+                       name.includes('tom') ||
+                       name.includes('pavel') ||
+                       name.includes('jan');
+            });
+            
+            if (maleVoices.length > 0) {
+                console.log('👦 Nalezen mužský hlas:', maleVoices[0].name);
+                return maleVoices[0];
+            }
+            
+            // 3. České hlasy (priorita pro český chlapeček)
+            const czechVoices = voices.filter(voice => 
+                voice.lang.startsWith('cs') || 
+                voice.name.toLowerCase().includes('czech') ||
+                voice.name.toLowerCase().includes('cs')
+            );
+            
+            if (czechVoices.length > 0) {
+                console.log('👦 Nalezen český hlas:', czechVoices[0].name);
+                return czechVoices[0];
+            }
+            
+            // 4. Fallback - první dostupný hlas
+            console.log('👦 Použit fallback hlas:', voices[0].name);
+            return voices[0];
+        }
+        
+        function stopSpeaking() {
+            if (speechSynthesis) {
+                speechSynthesis.cancel();
+                bingCharacter.classList.remove('bing-talking');
+            }
+        }
+        
+        function toggleSpeech() {
+            TTS_CONFIG.enabled = !TTS_CONFIG.enabled;
+            const button = document.getElementById('speechToggle');
+            if (button) {
+                button.textContent = TTS_CONFIG.enabled ? '🔊 Mluví' : '🔇 Němý';
+                button.style.backgroundColor = TTS_CONFIG.enabled ? '#4CAF50' : '#f44336';
+            }
+            
+            if (!TTS_CONFIG.enabled) {
+                stopSpeaking();
+            }
+        }
+        
+        const AI_CONFIG = {
+            // OpenAI API
+            openaiApiKey: 'sk-proj-your-api-key-here', // Nahraďte skutečným OpenAI API klíčem
+            openaiModel: 'gpt-3.5-turbo',
+            maxTokens: 150,
+            temperature: 0.8,
+            
+            // Microsoft Azure OpenAI API (Copilot)
+            copilotApiKey: 'your-azure-openai-api-key-here', // Nahraďte skutečným Azure OpenAI API klíčem
+            copilotEndpoint: 'https://your-resource-name.openai.azure.com/openai/deployments/your-deployment-name/chat/completions?api-version=2024-02-15-preview',
+            copilotModel: 'copilot-gpt-4',
+            copilotMaxTokens: 200,
+            copilotTemperature: 0.7
+        };
+
+        // Vylepšený systém odpovědí s více variabilitou
+        async function getMinkaResponse(userMessage) {
+            // Priorita: Copilot > OpenAI > Fallback
+            try {
+                // Zkus Copilot API (nejvyšší priorita)
+                if (AI_CONFIG.copilotApiKey !== 'your-azure-openai-api-key-here') {
+                    const copilotResponse = await getCopilotResponse(userMessage);
+                    if (copilotResponse) {
+                        return copilotResponse;
+                    }
+                }
+            } catch (error) {
+                console.log('Copilot API nedostupné, zkouším OpenAI:', error);
+            }
+            
+            try {
+                // Zkus OpenAI API
+                if (AI_CONFIG.openaiApiKey !== 'sk-proj-your-api-key-here') {
+                    const openaiResponse = await getOpenAIResponse(userMessage);
+                    if (openaiResponse) {
+                        return openaiResponse;
+                    }
+                }
+            } catch (error) {
+                console.log('OpenAI API nedostupné, používám fallback:', error);
+            }
+            
+            // Fallback na inteligentní systém
+            return getIntelligentFallback(userMessage);
+        }
+
+        function getIntelligentFallback(userMessage) {
+            const lowerMessage = userMessage.toLowerCase();
+            
+            // Konkrétní odpovědi na skutečné otázky
+            if (lowerMessage.includes('počasí') || lowerMessage.includes('počas')) {
+                const weatherResponses = [
+                    'Počasí je dnes krásné! Sluníčko svítí! ☀️',
+                    'Dnes je slunečno! Ideální na hraní venku!',
+                    'Počasí je skvělé! Chceš jít ven si hrát?',
+                    'Je krásný den! Sluníčko svítí a je teplo!'
+                ];
+                return weatherResponses[Math.floor(Math.random() * weatherResponses.length)];
+            }
+            
+            if (lowerMessage.includes('kolik je hodin') || lowerMessage.includes('jaký čas')) {
+                const timeResponses = [
+                    'Je čas na hraní! To je nejlepší čas!',
+                    'Je čas si hrát! Co si zahrajeme?',
+                    'Je čas na zábavu! Chceš si hrát?',
+                    'Je čas být spolu! Co budeme dělat?'
+                ];
+                return timeResponses[Math.floor(Math.random() * timeResponses.length)];
+            }
+            
+            if (lowerMessage.includes('co je') && lowerMessage.includes('?')) {
+                const whatIsResponses = [
+                    'To je zajímavá otázka! Co si o tom myslíš?',
+                    'Hmm, to je dobrá otázka! Říkáš mi, co víš?',
+                    'To je těžké! Možná by nám pomohl můj autobus! 🚌',
+                    'Zajímavé! Nikdy jsem o tom nepřemýšlel! A ty?'
+                ];
+                return whatIsResponses[Math.floor(Math.random() * whatIsResponses.length)];
+            }
+            
+            if (lowerMessage.includes('jak se') && lowerMessage.includes('?')) {
+                const howToResponses = [
+                    'To je dobrá otázka! Zkusíme to společně!',
+                    'Hmm, možná bychom se mohli zeptat někoho jiného!',
+                    'To je těžké! Co si o tom myslíš ty?',
+                    'Zkusíme to vyřešit společně! Co navrhuješ?'
+                ];
+                return howToResponses[Math.floor(Math.random() * howToResponses.length)];
+            }
+            
+            if (lowerMessage.includes('proč') && lowerMessage.includes('?')) {
+                const whyResponses = [
+                    'To je dobrá otázka! Někdy jsou věci prostě takové!',
+                    'Hmm, to je těžké vysvětlit! Co si myslíš?',
+                    'To je zajímavé! Možná je to proto, že... co ty?',
+                    'Dobrá otázka! Někdy prostě nevíme proč!'
+                ];
+                return whyResponses[Math.floor(Math.random() * whyResponses.length)];
+            }
+            
+            if (lowerMessage.includes('kde') && lowerMessage.includes('?')) {
+                const whereResponses = [
+                    'Jsem tady s tebou! A je mi tu moc dobře!',
+                    'Jsem tady! A ty jsi tady se mnou!',
+                    'Jsem tady s tebou! Co hledáš?',
+                    'Jsem tady! A ty jsi tady taky!'
+                ];
+                return whereResponses[Math.floor(Math.random() * whereResponses.length)];
+            }
+            
+            if (lowerMessage.includes('kdy') && lowerMessage.includes('?')) {
+                const whenResponses = [
+                    'Právě teď! Teď je ten nejlepší čas!',
+                    'Teď! Teď je čas na hraní!',
+                    'Právě teď! Co budeme dělat?',
+                    'Teď je ten správný čas! Chceš si hrát?'
+                ];
+                return whenResponses[Math.floor(Math.random() * whenResponses.length)];
+            }
+            
+            // Konkrétní témata
+            if (lowerMessage.includes('barvy') || lowerMessage.includes('barva')) {
+                const colorResponses = [
+                    'Barvy jsou úžasné! Můj autobus je červený! A jakou máš rád ty?',
+                    'Miluju barvy! Červená je nejlepší! A ty?',
+                    'Barvy jsou krásné! Můj autobus má červenou barvu!',
+                    'Barvy jsou skvělé! Kterou máš nejradši?'
+                ];
+                return colorResponses[Math.floor(Math.random() * colorResponses.length)];
+            }
+            
+            if (lowerMessage.includes('zvířata') || lowerMessage.includes('zvíře')) {
+                const animalResponses = [
+                    'Zvířata jsou úžasná! Mám rád pejsky a kočičky! A ty?',
+                    'Miluju zvířata! Jsou tak roztomilá! Které máš rád?',
+                    'Zvířata jsou skvělá! Mám rád všechna zvířátka!',
+                    'Zvířata jsou nejlepší! Které zvíře máš nejradši?'
+                ];
+                return animalResponses[Math.floor(Math.random() * animalResponses.length)];
+            }
+            
+            if (lowerMessage.includes('hračky') || lowerMessage.includes('hračka')) {
+                const toyResponses = [
+                    'Hračky jsou úžasné! Můj autobus je nejlepší hračka! A ty?',
+                    'Miluju hračky! Mám spoustu hraček! Které máš rád?',
+                    'Hračky jsou skvělé! Můj autobus je moje nejoblíbenější!',
+                    'Hračky jsou nejlepší! Co si rád hraješ?'
+                ];
+                return toyResponses[Math.floor(Math.random() * toyResponses.length)];
+            }
+            
+            if (lowerMessage.includes('jídlo') || lowerMessage.includes('jíst')) {
+                const foodResponses = [
+                    'Jídlo je úžasné! Mám rád zmrzlinu a pizzu! A ty?',
+                    'Miluju jídlo! Zmrzlina je nejlepší! Co máš rád?',
+                    'Jídlo je skvělé! Mám rád všechno dobré!',
+                    'Jídlo je nejlepší! Co máš nejradši?'
+                ];
+                return foodResponses[Math.floor(Math.random() * foodResponses.length)];
+            }
+            
+            if (lowerMessage.includes('škola') || lowerMessage.includes('učit se')) {
+                const schoolResponses = [
+                    'Škola je důležitá! Učíš se tam nové věci! Co se učíš?',
+                    'Miluju školu! Učím se tam spoustu věcí! A ty?',
+                    'Škola je úžasná! Co tě tam baví nejvíc?',
+                    'Škola je skvělá! Učíš se tam nové věci!'
+                ];
+                return schoolResponses[Math.floor(Math.random() * schoolResponses.length)];
+            }
+            
+            if (lowerMessage.includes('rodina') || lowerMessage.includes('maminka') || lowerMessage.includes('tatínek')) {
+                const familyResponses = [
+                    'Rodina je nejlepší! Mám rád maminku a tatínka! A ty?',
+                    'Miluju rodinu! Jsou to nejdůležitější lidé!',
+                    'Rodina je úžasná! Mám skvělou rodinu!',
+                    'Rodina je nejlepší! Máš rád svou rodinu?'
+                ];
+                return familyResponses[Math.floor(Math.random() * familyResponses.length)];
+            }
+            
+            if (lowerMessage.includes('přátelé') || lowerMessage.includes('kamarád')) {
+                const friendResponses = [
+                    'Přátelé jsou úžasní! Ty jsi můj kamarád!',
+                    'Miluju přátele! Jsou to nejlepší lidé!',
+                    'Přátelé jsou skvělí! Jsem rád, že tě mám!',
+                    'Přátelé jsou nejlepší! Jsi můj kamarád!'
+                ];
+                return friendResponses[Math.floor(Math.random() * friendResponses.length)];
+            }
+            
+            // Rozšířené klíčová slova s více variantami
+            const keywordResponses = {
+                // Pozdravy - více variant
+                'ahoj': [
+                    'Ahoj! Jak se máš? Jsem tak rád, že si se mnou chceš povídat! 😊',
+                    'Ahoj kamaráde! Mám se úžasně! A ty jak?',
+                    'Ahoj! Právě jsem si hrál s autobusem! Chceš si hrát taky?',
+                    'Ahoj! Jsem Minka a jsem tu pro tebe! Co budeme dělat?'
+                ],
+                'nazdar': [
+                    'Nazdar! To je super, že jsi tady! Co budeme dělat?',
+                    'Nazdar kamaráde! Mám skvělou náladu!',
+                    'Nazdar! Právě jsem objevil něco úžasného!'
+                ],
+                'dobrý den': [
+                    'Dobrý den! Jsem Minka a mám moc dobrou náladu! A ty?',
+                    'Dobrý den! Jaký krásný den! Chceš si hrát?',
+                    'Dobrý den! Mám se úžasně! Co tě zajímá?'
+                ],
+                
+                // Osobní otázky
+                'jak se jmenuješ': [
+                    'Jmenuji se Minka! Jsem malý chlapec a mám rád autobusy! 🚌',
+                    'Já jsem Minka! A ty jak se jmenuješ?',
+                    'Minka! To je moje jméno! A ty?'
+                ],
+                'kolik ti je let': [
+                    'Jsem malý chlapec, tak asi 4 roky! A tobě kolik je?',
+                    'Mám 4 roky! Jsem už velký kluk! A ty?',
+                    'Je mi 4! A tobě kolik?'
+                ],
+                'co máš rád': [
+                    'Mám rád autobusy, hraní si, kamarády a povídání! A taky zmrzlinu! 🍦',
+                    'Autobusy jsou nejlepší! A taky mám rád hračky a kamarády!',
+                    'Miluju autobusy! A taky si hrát a povídat si! Co máš rád ty?'
+                ],
+                
+                // Autobusy a hračky
+                'autobus': [
+                    'To je můj nejoblíbenější autobus! Je červený a má krásná kolečka! Chceš se svézt?',
+                    'Můj autobus je úžasný! Má červenou barvu a krásná kolečka!',
+                    'Autobusy jsou nejlepší! Můj je červený a jezdí všude!'
+                ],
+                'hračka': [
+                    'Mám rád všechny hračky! Tenhle autobus je můj nejlepší kamarád!',
+                    'Hračky jsou úžasné! Můj autobus je nejlepší!',
+                    'Miluju hračky! Zvlášť můj červený autobus!'
+                ],
+                
+                // Aktivity
+                'hrát': [
+                    'Ano! Miluju si hrát! Co si budeme hrát? Na schovávanou? Nebo na autobusy?',
+                    'Hraní je nejlepší věc na světě! Co si budeme hrát?',
+                    'Chci si hrát! Co tě baví nejvíc?'
+                ],
+                'hra': [
+                    'Hry jsou nejlepší! Znám spoustu her! Která je tvoje oblíbená?',
+                    'Miluju hry! Kterou si chceš hrát?',
+                    'Hry jsou úžasné! Co si zahrajeme?'
+                ],
+                
+                // Jídlo
+                'zmrzlina': [
+                    'Zmrzlina je nejlepší! Mám rád vanilkovou a jahodovou! 🍦',
+                    'Miluju zmrzlinu! Zvlášť jahodovou! A ty?',
+                    'Zmrzlina je úžasná! Jakou máš rád?'
+                ],
+                'pizza': [
+                    'Pizza je úžasná! Mám rád tu s šunkou a sýrem! 🍕',
+                    'Miluju pizzu! Zvlášť s šunkou! A ty?',
+                    'Pizza je nejlepší! Jakou máš rád?'
+                ],
+                
+                // Pocity
+                'jak se máš': [
+                    'Mám se úžasně! Jsem šťastný chlapec! Díky, že se ptáš! A ty jak?',
+                    'Mám se skvěle! Jsem tak šťastný! A ty?',
+                    'Mám se úžasně! Díky za otázku! A ty jak se máš?'
+                ],
+                'šťastný': [
+                    'To je skvělé! Když jsi šťastný, jsem šťastný i já!',
+                    'Jsem rád, že jsi šťastný! Já jsem taky!',
+                    'Štěstí je nejlepší! Jsem taky šťastný!'
+                ],
+                'smutný': [
+                    'Nebuď smutný! Já ti pomůžu být veselý! Chceš si hrát?',
+                    'Nebuď smutný! Pojď si hrát! To tě rozveselí!',
+                    'Nebuď smutný! Já tě rozveselím!'
+                ],
+                
+                // Rodina
+                'maminka': [
+                    'Maminka je nejlepší! Máš ji rád? Já mám rád svou maminku!',
+                    'Miluju maminku! Je úžasná! A ty?',
+                    'Maminka je skvělá! Máš ji rád?'
+                ],
+                'tatínek': [
+                    'Tatínek je super! Hraje si se mnou a vozí mě autobusem!',
+                    'Miluju tatínka! Je nejlepší! A ty?',
+                    'Tatínek je úžasný! Máš ho rád?'
+                ],
+                
+                // Škola
+                'škola': [
+                    'Škola je důležitá! Učíš se tam nové věci! Co se učíš?',
+                    'Miluju školu! Učím se tam spoustu věcí! A ty?',
+                    'Škola je úžasná! Co tě tam baví nejvíc?'
+                ],
+                'učit': [
+                    'Učení je zábavné! Já se učím každý den nové věci!',
+                    'Miluju se učit! Je to tak zajímavé! A ty?',
+                    'Učení je skvělé! Co se učíš?'
+                ]
+            };
+            
+            // Hledej klíčová slova
+            for (const [keyword, responses] of Object.entries(keywordResponses)) {
+                if (lowerMessage.includes(keyword)) {
+                    return responses[Math.floor(Math.random() * responses.length)];
+                }
+            }
+            
+            // Inteligentní odpovědi podle typu zprávy
+            if (lowerMessage.includes('?')) {
+                const questionResponses = [
+                    'To je zajímavá otázka! Myslím, že... hmm, co si o tom myslíš ty?',
+                    'Wow, to mě nenapadlo! Říkáš mi, co si o tom myslíš?',
+                    'To je dobrá otázka! Možná by nám pomohl můj autobus! 🚌',
+                    'Neumím to úplně vysvětlit, ale zkusíme to společně vyřešit!',
+                    'Hmm, to je těžké! Co si o tom myslíš ty? Možná máš lepší nápad!',
+                    'To je skvělá otázka! Já si myslím, že... co ty?',
+                    'Zajímavé! Nikdy jsem o tom nepřemýšlel! A ty?',
+                    'To je těžké! Možná bychom se mohli zeptat někoho jiného!'
+                ];
+                return questionResponses[Math.floor(Math.random() * questionResponses.length)];
+            }
+            
+            if (lowerMessage.length < 5) {
+                const shortResponses = [
+                    'Mhm! A co ještě?',
+                    'Ano! Pokračuj!',
+                    'To je zajímavé! Povíš mi víc?',
+                    'Super! A co dál?',
+                    'Rozumím! Říkej dál!',
+                    'Mhm! To je skvělé!',
+                    'Ano! To mě baví!',
+                    'Super! Povíš mi víc?'
+                ];
+                return shortResponses[Math.floor(Math.random() * shortResponses.length)];
+            }
+            
+            // Kontextové odpovědi
+            if (lowerMessage.includes('děkuji') || lowerMessage.includes('díky')) {
+                const thanksResponses = [
+                    'Není zač! Jsem rád, že ti můžu pomoct! 😊',
+                    'Rádo se stalo! Jsem tu pro tebe!',
+                    'Není za co! Jsem rád, že jsem pomohl!',
+                    'To nic! Jsem tu vždycky!'
+                ];
+                return thanksResponses[Math.floor(Math.random() * thanksResponses.length)];
+            }
+            
+            if (lowerMessage.includes('prosím')) {
+                const pleaseResponses = [
+                    'Samozřejmě! Rád ti pomůžu!',
+                    'Ano! Co potřebuješ?',
+                    'Jasně! Jak ti můžu pomoct?',
+                    'Určitě! Říkej!'
+                ];
+                return pleaseResponses[Math.floor(Math.random() * pleaseResponses.length)];
+            }
+            
+            // Rozpoznávání emocí
+            if (lowerMessage.includes('smutný') || lowerMessage.includes('smutno') || lowerMessage.includes('smutná')) {
+                const sadResponses = [
+                    'Nebuď smutný! Já ti pomůžu být veselý! Chceš si hrát?',
+                    'Nebuď smutný! Pojď si hrát! To tě rozveselí!',
+                    'Nebuď smutný! Já tě rozveselím!',
+                    'Smutek je v pořádku! Ale pojď si hrát!'
+                ];
+                return sadResponses[Math.floor(Math.random() * sadResponses.length)];
+            }
+            
+            if (lowerMessage.includes('veselý') || lowerMessage.includes('veselo') || lowerMessage.includes('veselá')) {
+                const happyResponses = [
+                    'To je skvělé! Jsem taky veselý!',
+                    'Veselost je nejlepší! Já jsem taky šťastný!',
+                    'To je úžasné! Když jsi veselý, jsem veselý i já!',
+                    'Miluju být veselý! Jsi skvělý kamarád!'
+                ];
+                return happyResponses[Math.floor(Math.random() * happyResponses.length)];
+            }
+            
+            // Rozpoznávání času
+            if (lowerMessage.includes('ráno') || lowerMessage.includes('dopoledne')) {
+                const morningResponses = [
+                    'Dobré ráno! Jak jsi spal? Mám se úžasně!',
+                    'Ráno je nejlepší čas! Co budeme dělat?',
+                    'Dobré ráno! Jsem plný energie! A ty?',
+                    'Ráno je skvělé! Chceš si hrát?'
+                ];
+                return morningResponses[Math.floor(Math.random() * morningResponses.length)];
+            }
+            
+            if (lowerMessage.includes('večer') || lowerMessage.includes('večerní')) {
+                const eveningResponses = [
+                    'Dobrý večer! Už se chystáš spát? Nebo si ještě chceš hrát?',
+                    'Večer je čas na odpočinek! Ale můžeme si ještě hrát!',
+                    'Dobrý večer! Jaký byl tvůj den?',
+                    'Večer je krásný! Co jsme dnes zažili?'
+                ];
+                return eveningResponses[Math.floor(Math.random() * eveningResponses.length)];
+            }
+            
+            // Rozpoznávání počasí
+            if (lowerMessage.includes('slunce') || lowerMessage.includes('slunečno')) {
+                const sunnyResponses = [
+                    'Sluníčko je úžasné! Chceš jít ven si hrát?',
+                    'Miluju sluníčko! Je tak krásné!',
+                    'Slunce je nejlepší! Mám skvělou náladu!',
+                    'Sluníčko mě dělá šťastným! A tebe taky?'
+                ];
+                return sunnyResponses[Math.floor(Math.random() * sunnyResponses.length)];
+            }
+            
+            if (lowerMessage.includes('déšť') || lowerMessage.includes('prší')) {
+                const rainyResponses = [
+                    'Déšť je v pořádku! Můžeme si hrát doma!',
+                    'Miluju déšť! Je to tak uklidňující!',
+                    'Déšť je skvělý! Můžeme si hrát s autobusem!',
+                    'Déšť nevadí! Máme spoustu her doma!'
+                ];
+                return rainyResponses[Math.floor(Math.random() * rainyResponses.length)];
+            }
+            
+            // Obecné inteligentní odpovědi - POUZE jako poslední možnost
+            const generalResponses = [
+                'To zní zajímavě! Povíš mi o tom víc?',
+                'Wow! To je moc zajímavé! Jsem zvědavý chlapec! 😊',
+                'Super! Mám rád, když mi vyprávíš nové věci!',
+                'To je skvělé! A co se stalo potom?',
+                'Úžasné! Myslím, že jsi velmi chytrý! Co ještě víš?',
+                'To mě moc baví! Můžeme si o tom povídat ještě více?',
+                'Krásné! Svět je plný úžasných věcí, že ano?',
+                'To je fascinující! Učím se od tebe nové věci!',
+                'Skvělé! Máš zajímavé nápady! Říkej dál!',
+                'Úžasné! Jsem rád, že si se mnou povídáš!',
+                'To je zajímavé! Povíš mi o tom víc?',
+                'Wow! To je skvělé! Co ještě víš?',
+                'Super! To mě moc baví! Říkej dál!',
+                'Úžasné! Jsi velmi chytrý! Co si o tom myslíš?',
+                'To je krásné! Mám rád, když mi vyprávíš!'
+            ];
+            
+            return generalResponses[Math.floor(Math.random() * generalResponses.length)];
+        }
+
+        async function getCopilotResponse(userMessage) {
+            const response = await fetch(AI_CONFIG.copilotEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'api-key': AI_CONFIG.copilotApiKey
+                },
+                body: JSON.stringify({
+                    messages: [
+                        {
+                            role: 'system',
+                            content: 'Jsi Minka, 4letý chlapec. Mluv dětsky, používej emoji, máš rád autobusy a hračky. Buď přátelský, zvědavý a odpovídej krátce. Max 2 věty. Používej český jazyk.'
+                        },
+                        {
+                            role: 'user',
+                            content: userMessage
+                        }
+                    ],
+                    max_tokens: AI_CONFIG.copilotMaxTokens,
+                    temperature: AI_CONFIG.copilotTemperature,
+                    top_p: 0.9,
+                    frequency_penalty: 0.1,
+                    presence_penalty: 0.1
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Azure OpenAI API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content.trim();
+        }
+
+        async function getOpenAIResponse(userMessage) {
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${AI_CONFIG.openaiApiKey}`
+                },
+                body: JSON.stringify({
+                    model: AI_CONFIG.openaiModel,
+                    messages: [
+                        {
+                            role: 'system',
+                            content: 'Jsi Minka, 4letý chlapec. Mluv dětsky, používej emoji, máš rád autobusy a hračky. Buď přátelský a zvědavý.'
+                        },
+                        {
+                            role: 'user',
+                            content: userMessage
+                        }
+                    ],
+                    max_tokens: AI_CONFIG.maxTokens,
+                    temperature: AI_CONFIG.temperature
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`OpenAI API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content.trim();
+        }
+
+        
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+            
+            console.log("Odesílám zprávu:", message); // Debug
+            
+            // Přidej uživatelovu zprávu
+            addMessage(message, true);
+            userInput.value = '';
+            userInput.focus(); // Vrať focus zpět na input
+            
+            // Zobraz "píše..." s různými zprávami
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bing-message typing';
+            
+            const typingMessages = [
+                'Minka přemýšlí...',
+                'Minka si pamatuje...',
+                'Minka odpovídá...',
+                'Minka se snaží...',
+                'Minka používá Copilot...',
+                'Minka používá AI...',
+                'Minka analyzuje...',
+                'Minka zpracovává...'
+            ];
+            typingDiv.textContent = typingMessages[Math.floor(Math.random() * typingMessages.length)];
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Animuj Minku podle typu zprávy
+            const lowerMessage = message.toLowerCase();
+            let animationType = 'talking';
+            
+            if (lowerMessage.includes('ahoj') || lowerMessage.includes('nazdar') || lowerMessage.includes('dobrý')) {
+                animationType = 'happy';
+            } else if (lowerMessage.includes('?')) {
+                animationType = 'thinking';
+            }
+            
+            animateMinka(animationType);
+            
+            // Simuluj čekání s různými časy podle typu odpovědi
+            const isQuestion = lowerMessage.includes('?');
+            const waitTime = isQuestion ? 1500 + Math.random() * 1000 : 800 + Math.random() * 800;
+            
+            setTimeout(async () => {
+                chatMessages.removeChild(typingDiv);
+                try {
+                    const response = await getMinkaResponse(message);
+                addMessage(response, false);
+                    
+                    // Nech Minku mluvit
+                    setTimeout(() => {
+                        speakText(response);
+                    }, 500);
+                    
+                    // Animuj podle typu odpovědi
+                    if (response.includes('😊') || response.includes('Super') || response.includes('úžasné')) {
+                        setTimeout(() => animateMinka('happy'), 500);
+                    }
+                } catch (error) {
+                    console.error('Chyba při získávání odpovědi:', error);
+                    const errorMessage = 'Omlouvám se, něco se pokazilo! Zkus to prosím znovu. 😅';
+                    addMessage(errorMessage, false);
+                    setTimeout(() => speakText(errorMessage), 500);
+                }
+            }, waitTime);
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+        
+        // Focusni input na začátku a přidej event listener
+        document.addEventListener('DOMContentLoaded', function() {
+            userInput.focus();
+            userInput.addEventListener('keypress', handleKeyPress);
+            
+            // Inicializuj řečový systém s hlasem malého chlapečka
+            if (speechSynthesis) {
+                console.log('✅ Text-to-Speech je dostupný');
+                
+                // Funkce pro načtení a zobrazení hlasů
+                function loadVoices() {
+                    const voices = speechSynthesis.getVoices();
+                    console.log('🎤 Dostupné hlasy:', voices.length);
+                    
+                    if (voices.length > 0) {
+                        console.log('🎤 Seznam všech hlasů:');
+                        voices.forEach((voice, index) => {
+                            const isBoyVoice = TTS_CONFIG.boyVoiceSettings.preferredVoices.some(name => 
+                                voice.name.toLowerCase().includes(name.toLowerCase())
+                            );
+                            const marker = isBoyVoice ? '👦' : '🎤';
+                            console.log(`${marker} ${index + 1}. ${voice.name} (${voice.lang})`);
+                        });
+                        
+                        // Najdi nejlepší hlas pro chlapečka
+                        const bestVoice = findBestBoyVoice(voices);
+                        if (bestVoice) {
+                            console.log('👦 Vybraný hlas chlapečka:', bestVoice.name);
+                        }
+                    }
+                }
+                
+                // Načti hlasy hned
+                loadVoices();
+                
+                // Počkej na načtení hlasů (některé prohlížeče načítají asynchronně)
+                speechSynthesis.onvoiceschanged = loadVoices;
+                
+                // Fallback - zkus znovu za 1 sekundu
+                setTimeout(loadVoices, 1000);
+                
+            } else {
+                console.warn('⚠️ Text-to-Speech není podporován v tomto prohlížeči');
+                TTS_CONFIG.enabled = false;
+                const speechButton = document.getElementById('speechToggle');
+                if (speechButton) {
+                    speechButton.style.display = 'none';
+                }
+            }
+            
+            // Inicializuj Speech Recognition (mikrofon)
+            if (initSpeechRecognition()) {
+                console.log('✅ Speech Recognition je dostupný');
+            } else {
+                console.warn('⚠️ Speech Recognition není podporován v tomto prohlížeči');
+            }
+            
+            // Zkontroluj API klíče
+            if (AI_CONFIG.copilotApiKey === 'your-azure-openai-api-key-here' && AI_CONFIG.openaiApiKey === 'sk-proj-your-api-key-here') {
+                console.warn('⚠️ Pro použití AI odpovědí nastavte platné API klíče');
+                console.log('📝 Instrukce pro Azure OpenAI (Copilot):');
+                console.log('1. Požádejte o přístup na https://aka.ms/OAIapply');
+                console.log('2. Vytvořte Azure OpenAI prostředek na https://portal.azure.com');
+                console.log('3. Získejte API klíč v sekci "Klíče a koncový bod"');
+                console.log('4. Nahraďte "your-azure-openai-api-key-here" skutečným klíčem');
+                console.log('5. Aktualizujte copilotEndpoint s vaším koncovým bodem');
+                console.log('📝 Instrukce pro OpenAI:');
+                console.log('1. Získejte OpenAI API klíč na https://platform.openai.com/api-keys');
+                console.log('2. Nahraďte "sk-proj-your-api-key-here" skutečným klíčem');
+                console.log('3. Aplikace bude fungovat i bez AI s fallback odpověďmi');
+            } else if (AI_CONFIG.copilotApiKey !== 'your-azure-openai-api-key-here') {
+                console.log('✅ Copilot API je nakonfigurováno');
+            } else if (AI_CONFIG.openaiApiKey !== 'sk-proj-your-api-key-here') {
+                console.log('✅ OpenAI API je nakonfigurováno');
+            }
+        });
+    </script>
+</body>
+</html>
