@@ -364,7 +364,9 @@
     <div class="chat-container">
         <div class="bing-side">
             <div class="bing-character" id="bingCharacter">
-                <svg width="320" height="420" viewBox="0 0 320 420" xmlns="http://www.w3.org/2000/svg">
+                <svg width="320" height="420" viewBox="0 0 320 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="minkaTitle minkaDesc">
+                    <title id="minkaTitle">Postava Minky</title>
+                    <desc id="minkaDesc">Hlava malého dítěte se světlými vlasy, portrét vložený do ilustrace postavy; bez identifikace.</desc>
                     <defs>
                         <!-- Clip path pro hlavu -->
                         <clipPath id="headClip">
@@ -407,8 +409,14 @@
                     <!-- Krk pod kapucí -->
                     <ellipse cx="160" cy="200" rx="30" ry="20" fill="#FFE4E1"/>
                     
-                    <!-- Hlava z fotografie -->
-                    <image href="IMG_7287.jpeg" x="105" y="80" width="110" height="110" clip-path="url(#headClip)" preserveAspectRatio="xMidYMid slice" filter="url(#headGlow)"/>
+                    <!-- Hlava z fotografie (optimalizovaná, responsivní) -->
+                    <switch>
+                        <!-- Preferuj WebP, fallback JPEG -->
+                        <g requiredExtensions="http://www.w3.org/1999/xlink">
+                            <image href="img/IMG_7287-319.webp" x="105" y="80" width="110" height="110" clip-path="url(#headClip)" preserveAspectRatio="xMidYMid slice" filter="url(#headGlow)"/>
+                        </g>
+                        <image href="img/IMG_7287-319.jpg" x="105" y="80" width="110" height="110" clip-path="url(#headClip)" preserveAspectRatio="xMidYMid slice" filter="url(#headGlow)"/>
+                    </switch>
                     
                     <!-- Rukávy mikiny -->
                     <ellipse cx="90" cy="250" rx="25" ry="45" fill="url(#hoodieGradient)" stroke="#1A252F" stroke-width="3"/>
